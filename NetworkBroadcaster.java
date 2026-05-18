@@ -18,7 +18,6 @@ public class NetworkBroadcaster {
      * 
      * @param ip   The ip address to send data packets to.
      * @param port The port to send data packets to.
-     * @throws {@see resolveAddress}
      * @since v1.0.0
      */
     public NetworkBroadcaster(String ip, int port) {
@@ -31,7 +30,6 @@ public class NetworkBroadcaster {
      * @param ip     The ip address to send data packets to.
      * @param port   The port to send data packets to.
      * @param socket Shared socket to help sending and receiving.
-     * @throws {@see resolveAddress}
      * @since v1.0.0
      */
     public NetworkBroadcaster(String ip, int port, DatagramSocket socket) {
@@ -44,7 +42,6 @@ public class NetworkBroadcaster {
      * @param ip   The ip address to send data packets to (in the form of an
      *             InetAddress object).
      * @param port The port to send data packets to.
-     * @throws {@see createSocket}
      * @since v1.0.0
      */
     public NetworkBroadcaster(InetAddress serverAddress, int port) {
@@ -58,7 +55,6 @@ public class NetworkBroadcaster {
      *               InetAddress object).
      * @param port   The port to send data packets to.
      * @param socket Shared socket to help sending and receiving.
-     * @throws {@see validateArguments}
      * @since v1.0.0
      */
     public NetworkBroadcaster(InetAddress serverAddress, int port, DatagramSocket socket) {
