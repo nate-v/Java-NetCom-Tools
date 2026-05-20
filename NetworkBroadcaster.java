@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.*;
 
 public class NetworkBroadcaster {
+    private DatagramPacket packet;
     private final int port;
     private final InetAddress serverAddress;
     private final DatagramSocket socket;
@@ -39,7 +40,7 @@ public class NetworkBroadcaster {
     /**
      * Constructor for the NetworkBroadcaster class
      * 
-     * @param ip   The ip address to send data packets to (in the form of an
+     * @param serverAddress   The ip address to send data packets to (in the form of an
      *             InetAddress object).
      * @param port The port to send data packets to.
      * @since v1.0.0
@@ -51,7 +52,7 @@ public class NetworkBroadcaster {
     /**
      * Constructor for the NetworkBroadcaster class
      * 
-     * @param ip     The ip address to send data packets to (in the form of an
+     * @param serverAddress     The ip address to send data packets to (in the form of an
      *               InetAddress object).
      * @param port   The port to send data packets to.
      * @param socket Shared socket to help sending and receiving.
@@ -77,7 +78,7 @@ public class NetworkBroadcaster {
             throw new IllegalArgumentException("data must not be null");
         }
         try {
-            DatagramPacket packet = new DatagramPacket(data, data.length, serverAddress, port);
+            packet = new DatagramPacket(data, data.length, serverAddress, port);
             socket.send(packet);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to send UDP packet", e);

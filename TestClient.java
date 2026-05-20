@@ -46,7 +46,7 @@ public class TestClient {
                     String rece = (String.format("%.3f ms", rttMs));
                     System.out.println("\n┌-------------------> [ Server ]" +
                             "\n|                              |" +
-                            "\n[ Client ] <--------" + rece + "-----┘");
+                            "\n[ Client ] <------" + rece + "-----┘");
                 } catch (Exception e) {
                     System.out.println("Did not recieve a response packet.\n" + e);
                 }

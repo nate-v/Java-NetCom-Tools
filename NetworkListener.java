@@ -8,11 +8,11 @@
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-// import java.net.InetAddress;
 import java.net.SocketException;
-// import java.util.List;
-
 import java.net.InetSocketAddress;
+import java.net.InetAddress;
+import java.util.Set;
+import java.util.HashSet;
 
 public class NetworkListener extends Thread {
     private final int port;
@@ -22,8 +22,9 @@ public class NetworkListener extends Thread {
     private final DataReceiver receiver;
     private DatagramPacket dp;
     private boolean SO_REUSEADDR = false;
-    // private List<InetAddress> IP_blist;
-    // private List<InetAddress> IP_alist;
+
+    private Set<InetAddress> address_list = new HashSet<>();
+    private int restr_type = -1;// -1: disable --- 0: blacklist --- 1: whitelist
 
     /**
      * Constructor for the NetworkListener class.
@@ -79,6 +80,213 @@ public class NetworkListener extends Thread {
         this.packet_size = packet_size;
         this.receiver = receiver;
     }
+    // blacklist stuff
+
+    /**
+     * Initializes a set of addresses to have restrictions applied to, these
+     * addresses can either be whitelisted or blacklisted.
+     * 
+     * @param set The set of InetAddresses which restrictions will be applied to.
+     * @since v1.2.1
+     */
+    public void setRestrictionSet(Set<InetAddress> set) {
+        if (set == null) {
+            throw new IllegalArgumentException("Set cannot be null");
+        }
+        address_list = set;
+    }
+
+    /**
+     * Initializes a set of addresses to have restrictions applied to, these
+     * addresses can either be whitelisted or blacklisted.
+     * <p>
+     * Uses a {@code Set<String>} paramater, use {@code setRestrictionSet} with the
+     * {@code Set<InetAddress>} parameter for much higher efficiency.
+     * 
+     * @param set The set of InetAddresses which restrictions will be applied to.
+     * @since v1.2.1
+     */
+    public void setRestrictionStringSet(Set<String> set) {
+        if (set == null) {
+            throw new IllegalArgumentException("Set cannot be null");
+        }
+        address_list.clear();
+        for (String ip : set) {
+            address_list.add(resolveAddress(ip));
+        }
+    }
+
+    /**
+     * Adds an address to the set of restricted addresses.
+     * 
+     * @param a The address to be restricted.
+     * @return {@code false} if the set already contains this address, and
+     *         {@code true} if the address was succesfully added.
+     * @throws IllegalArgumentException if a is null.
+     * @since v1.2.1
+     */
+    public boolean addRestricted(InetAddress a) {
+        if (a == null) {
+            throw new IllegalArgumentException("Address cannot be null");
+        }
+        if (address_list.add(a))
+            return true;
+        return false;
+    }
+
+    /**
+     * Adds an address to the set of restricted addresses.
+     * <p>
+     * Uses a {@code String} paramater, use the method with the {@code InetAddress}
+     * parameter for slightly higher efficiency.
+     * 
+     * @param ip The address to be restricted.
+     * @return {@code false} if the set already contains this address, and
+     *         {@code true} if the address was succesfully added.
+     * @throws IllegalArgumentException if a is null.
+     * @since v1.2.1
+     */
+    public boolean addRestricted(String ip) {
+        InetAddress a = resolveAddress(ip);
+        if (a == null) {
+            throw new IllegalArgumentException("Address cannot be null");
+        }
+        if (address_list.add(a))
+            return true;
+        return false;
+    }
+
+    /**
+     * Removes an address from the set of restricted addresses.
+     * <p>
+     * Uses a {@code String} paramater, use the method with the {@code InetAddress}
+     * parameter for slightly higher efficiency.
+     * 
+     * @param ip The address to be removed.
+     * @return {@code false} if the set did not contain this address, and
+     *         {@code true} if the address was succesfully removed.
+     * @throws IllegalArgumentException if a is null.
+     * @since v1.2.1
+     */
+    public boolean removeRestricted(String ip) {
+        InetAddress a = resolveAddress(ip);
+        if (a == null) {
+            throw new IllegalArgumentException("Address cannot be null");
+        }
+        if (address_list.remove(a))
+            return true;
+        return false;
+    }
+
+    /**
+     * Removes an address from the set of restricted addresses.
+     * 
+     * @param a The address to be removed.
+     * @return {@code false} if the set did not contain this address, and
+     *         {@code true} if the address was succesfully removed.
+     * @throws IllegalArgumentException if a is null.
+     * @since v1.2.1
+     */
+    public boolean removeRestricted(InetAddress a) {
+        if (a == null) {
+            throw new IllegalArgumentException("Address cannot be null");
+        }
+        if (address_list.remove(a))
+            return true;
+        return false;
+    }
+
+    /**
+     * Changes the type of restriction applied to addresses in the restriction set.
+     * 
+     * @param restriction The restriction type. Valid restriction types are:
+     *                    {@code -1} to disable restrictions.
+     *                    {@code 0} to enable blacklist.
+     *                    {@code 1} to enable whitelist.
+     * @throws IllegalArgumentException if {@code restriction} is not -1, 0, or 1.
+     * @since v1.2.1
+     */
+    public void setRestriction(int restriction) {
+        if (restriction != -1 && restriction != 0 && restriction != 1) {
+            throw new IllegalArgumentException(
+                    "Invalid restriction type \nValid Arguments:\n-1: DISABLED\n0: BLACKLIST\n1: WHITELIST");
+        }
+        restr_type = restriction;
+    }
+
+    /**
+     * 
+     * @return The type of restriction applied. Valid restriction types are:
+     *         {@code -1} to disable restrictions.
+     *         {@code 0} to enable blacklist.
+     *         {@code 1} to enable whitelist.
+     * @since v1.2.1
+     */
+    public int getRestriction() {
+        return restr_type;
+    }
+
+    /**
+     * 
+     * @return the set of addresses restricted.
+     * @since v1.2.1
+     */
+    public Set<InetAddress> getRestrictionSet() {
+        return address_list;
+    }
+
+    /**
+     * This method is much slower than getRestrictionSet, which returns the set of
+     * addresses as InetAddresses.
+     * 
+     * @return the set of addresses restricted in {@code String} form.
+     * @since v1.2.1
+     */
+    public Set<String> getRestrictionStringSet() {
+        Set<String> temp = new HashSet<>();
+        for (InetAddress a : address_list) {
+            temp.add(a.toString());
+        }
+        return temp;
+    }
+
+    /**
+     * 
+     * @param a The address to search for in the set of restricted addresses.
+     * @return {@code true} if this address is contained in the set of restricted
+     *         addresses, {@code false} if otherwise.
+     * @since v1.2.1
+     */
+    public boolean isRestricted(InetAddress a) {
+        if (a == null) {
+            throw new IllegalArgumentException("Address cannot be null");
+        }
+        if (address_list.contains(a))
+            return true;
+        return false;
+    }
+
+    /**
+     * 
+     * @param a The address in {@code String} from to search for in the set of
+     *          restricted addresses.
+     * @return {@code true} if this address is contained in the set of restricted
+     *         addresses, {@code false} if otherwise.
+     * @since v1.2.1
+     */
+    public boolean isRestricted(String ip) {
+        InetAddress a = resolveAddress(ip);
+        if (a == null) {
+            throw new IllegalArgumentException("Address cannot be null");
+        }
+        if (address_list.contains(a))
+            return true;
+        return false;
+    }
+
+    public int restrictedAddressesSize() {
+        return address_list.size();
+    }
 
     /**
      * Starts the listener loop on a different thread.
@@ -86,10 +294,6 @@ public class NetworkListener extends Thread {
      * 
      * @throws SocketException
      * @throws IOException
-     *                         <p>
-     *                         v1.1.0 Changed DataReceiver format to optimize the
-     *                         defaut run() method, primarily to remove the slow
-     *                         Arrays.copyOf().
      * @since v1.0.0
      */
     @Override
@@ -105,6 +309,15 @@ public class NetworkListener extends Thread {
             dp = new DatagramPacket(new byte[packet_size], packet_size);
             while (active) {
                 ds.receive(dp);
+                if (restr_type == 0) {
+                    if (address_list.contains(dp.getAddress())) {
+                        continue;
+                    }
+                } else if (restr_type == 1) {
+                    if (!address_list.contains(dp.getAddress())) {
+                        continue;
+                    }
+                }
                 receiver.onReceive(dp.getData(), dp.getOffset(), dp.getLength(), dp.getAddress(), dp.getPort());
                 dp.setLength(packet_size);
             }
@@ -137,8 +350,28 @@ public class NetworkListener extends Thread {
         return false;
     }
 
-    public void setReuseAddress(boolean b)   {
+    public void setReuseAddress(boolean b) {
         SO_REUSEADDR = b;
+    }
+
+    /**
+     * Converts String object to InetAddress object safely
+     * Not meant for use outside of this class.
+     * 
+     * @param ip the String form of the ip address.
+     * @throws IllegalArgumentException if the String is null, blank, or not in the
+     *                                  valid IP address format.
+     * @since v1.2.1
+     */
+    private static InetAddress resolveAddress(String ip) {
+        if (ip == null || ip.isBlank()) {
+            throw new IllegalArgumentException("ip must not be null or blank");
+        }
+        try {
+            return InetAddress.getByName(ip);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Unable to resolve host: " + ip, e);
+        }
     }
 }
 // © 2026 Nathan Vailikit. All rights reserved.

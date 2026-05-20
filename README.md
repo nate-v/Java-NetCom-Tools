@@ -31,7 +31,7 @@
      or (DatagramSocket socket, int packet_size, DataReceiver receiver)
    ```
 
-## start (void)
+### start (void)
    ```
     <name>.start()
    ```
@@ -42,6 +42,80 @@
     <name>.shutdown()
 ```
 > *Shuts down the network listener.*
+
+### setRestrictionSet (void)
+```
+   <name>.setRestrictionSet(Set<InetAddress> set)
+```
+> *Sets the set of restricted addresses.*
+
+### SetRestrictionStringSet 
+```
+   <name.setRestricitonSet(Set<String> set)>
+```
+> *Identical to setRestrictionSet but accepts a set of Strings as a parameter*
+
+### addRestricted (boolean)
+```
+   <name>.addRestricted(<contents>)
+   <contents> = 
+      String ip
+   or InetAddress a
+```
+> *Adds an address into the set of restricted addresses. Returns true if added successfully, false if the set already contains that address.*
+
+### removeRestricted (boolean)
+```
+   <name>.removeRestricted(<contents>)
+   <contents> = 
+      String ip
+   or InetAddress a
+```
+> *Removes the specified address from the set of restricted address. Returns true if removed successfully, false if the set did not contain that address.*
+
+### setRestriction (void)
+```
+   <name>.setRestriction(int restriction)
+
+   Valid restrictions:
+   -1: Disabled
+   0:  Blacklist
+   1:  Whitelist
+```
+> *Sets the type of restriction to be applied to the NetworkListener.*
+
+### getRestriction (int)
+```
+   <name>.getRestriction()
+```
+> *Returns the type of restriction applied to the NetworkListener.*
+
+### getRestrictionSet (Set)
+```
+   <name>.getRestrictionSet()
+```
+> *Returns the set of InetAddresses that are restricted.*
+
+### getRestrictionStringSet (Set)
+```
+   <name>.getRestrictionStringSet()
+```
+> *Returns the set of InetAddresses in the form of Strings that are restricted.*
+
+### isRestricted (boolean)
+```
+   <name>.isRestricted(<contents>)
+   <contents> =
+      String ip
+   or InetAddress a
+```
+> *Returns true if the specified address is in the set of restricted addresses, false if otherwise.*
+
+### restrictedAddressesSize (int)
+```
+   <name>.restrictedAddressesSize()
+```
+> *Returns the size of the set of restricted addresses.*
 
 # DATA RECEIVER
 
