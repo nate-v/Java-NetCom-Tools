@@ -125,7 +125,7 @@
    Example:
     NetworkListener nl = new NetworkListener(serverport, 1024, new DataReceiver() {
             @Override
-            public void onReceive(byte[] data, InetAddress address, int port) {
+            public void onReceive(byte[] data, int offset, int length, InetAddress address, int port) {
                 NetworkBroadcaster nb = new NetworkBroadcaster(address, port);
 
                 String message = "recieved: " + new String(data);
