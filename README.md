@@ -71,7 +71,13 @@
 ```
    <name>.setReuseAddress(boolean b)
 ```
-> *Changes the value of SO_REUSEADDR. When true, the socket is allowed to bind to ports that may already be in use or in TIME_WAIT. Not entirely necessary, but good practice to use if you will be restarting the NetworkListener a lot.*
+> *Changes the value of SO_REUSEADDR. When true, the socket is allowed to bind to ports that may already be in use or in TIME_WAIT. Does not actually change the state of socket address reuse during runtime, only prior to calling start(). See setReuseAddressRuntime() for directly changing this state during runtime. Not entirely necessary, but good practice to use if you will be restarting the NetworkListener a lot.*
+
+### setReuseAddressRuntime (void)
+```
+   <name>.setReuseAddress(boolean b)
+```
+> *Changes the value of SO_REUSEADDR DURING RUNTIME. When true, the socket is allowed to bind to ports that may already be in use or in TIME_WAIT. Not entirely necessary, but good practice to use if you will be restarting the NetworkListener a lot.*
 
 ### setRestrictionSet (void)
 ```
@@ -154,7 +160,8 @@
    isActive()
    getSocket()
    getDataReceiver()
-   socketReuseAddress()
+   getSocketReuseAddress()       // Returns the true state, cannot be used while listener is closed.
+   getSocketReuseAddressFlag()   // Returns the flag state, for use while listener is closed.
 ```
 
 > *The toString method returns the following string:*

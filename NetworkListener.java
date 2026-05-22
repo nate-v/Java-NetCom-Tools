@@ -283,13 +283,22 @@ public class NetworkListener implements Runnable {
     }
 
     /**
-     * Start method for NetworkListener. Starts the listening loop on a seperate thread.
+     * Start method for NetworkListener. Starts the listening loop on a seperate
+     * thread.
      * 
      * @since v1.2.3
      */
     public void start() {
         if (thread != null && thread.isAlive()) {
             return;
+        }
+
+        try {
+            ds = new DatagramSocket(null);
+            ds.setReuseAddress(SO_REUSEADDR);
+            ds.bind(new InetSocketAddress(port));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         active = true;
@@ -308,11 +317,6 @@ public class NetworkListener implements Runnable {
     @Override
     public void run() {
         try {
-            if (ds == null) {
-                ds = new DatagramSocket(null);
-                ds.setReuseAddress(SO_REUSEADDR);
-                ds.bind(new InetSocketAddress(port));
-            }
             if (!active)
                 return;
             dp = new DatagramPacket(new byte[packet_size], packet_size);
@@ -379,12 +383,39 @@ public class NetworkListener implements Runnable {
     /**
      * Enables or disables the socket's ability to reuse addresses that are already
      * in use or in TIME_WAIT.
+     * <p>
+     * Only called while the listener is running.
+     * 
+     * @param b
+     * @since v1.2.4b
+     */
+    public void setReuseAddressRuntime(boolean b) {
+        if (ds == null) {
+            throw new NullPointerException("Cannot modify SO_REUSEADDR when socket is inactive, null.");
+        }
+        try {
+            ds.setReuseAddress(SO_REUSEADDR);
+            SO_REUSEADDR = b;
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Enables or disables the socket's ability to reuse addresses that are already
+     * in use or in TIME_WAIT.
+     * <p>
+     * Only called while the listener is not running, state will change when
+     * listener restarts!
      * 
      * @param b
      * @since v1.2.1
      */
     public void setReuseAddress(boolean b) {
-        SO_REUSEADDR = b;
+        if (ds == null) {// SO_REUSEADDR is a flag, so it should only be changed if the real state of the
+                         // socket is changed!
+            SO_REUSEADDR = b;
+        }
     }
 
     /**
@@ -459,13 +490,33 @@ public class NetworkListener implements Runnable {
     }
 
     /**
-     * Accessore method for the SO_REUSEADDR boolean.
+     * Accessor method for the SO_REUSEADDR state.
      * 
-     * @return {@code true} if socket reuse address is enable, {@code false} if
-     *         otherwise.
+     * @return {@code true} if socket reuse address is enabled, {@code false} if
+     *         otherwise OR the listener is closed.
      * @since v1.2.2
      */
-    public boolean socketReuseAddress() {
+    public boolean getSocketReuseAddress() {
+        if (ds != null) {
+            try {
+                return ds.getReuseAddress();
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Accessor method for the SO_REUSEADDR boolean.
+     * <p>
+     * For use when the listener is closed.
+     * 
+     * @return {@code true} if the socket reuse flag is set to true, {@code false} if
+     *         otherwise.
+     * @since v1.2.5
+     */
+    public boolean getSocketReuseAddressFlag() {
         return SO_REUSEADDR;
     }
 

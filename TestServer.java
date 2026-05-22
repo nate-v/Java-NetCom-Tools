@@ -12,24 +12,24 @@ public class TestServer {
                 nb.broadcast("hi".getBytes());
             }
         });
+        nl.setReuseAddress(true);
+        System.out.println(nl.getSocketReuseAddressFlag());
         nl.start();
-        // RESTRICTION TESTING
         nl.addRestricted("178.10.52.67");
         nl.setRestriction(0);
         try {
             nl.addRestricted(InetAddress.getByName("192.40.20.1"));
-            System.out.println(nl.isRestricted(InetAddress.getByName("192.40.20.1")));
-            System.out.println(nl.isRestricted(InetAddress.getByName("197.40.22.1")));
         } catch (Exception e) {
             // do nothing
         }
         System.out.println(nl);
-        nl.setReuseAddress(false);
+        System.out.println(nl.getSocketReuseAddress());
+        nl.setReuseAddressRuntime(false);
         nl.shutdown();
         System.out.println(nl);
         nl.restart();
         System.out.println(nl);
-        nl.start();
+        System.out.println(nl.getSocketReuseAddress());
     }
 
     public static void stop() {
