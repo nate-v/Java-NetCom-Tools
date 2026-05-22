@@ -1,10 +1,3 @@
-/* ▄▄     ▄▄▄                 ▄▄▄             ▄▄                  
-   ██▄   ██▀      █▄         █▀██  ██▀▀        ██              █▄ 
-   ███▄  ██      ▄██▄          ██  ██       ▀▀ ██ ▀▀ ▄▄     ▀▀▄██▄
-   ██ ▀█▄██ ▄▀▀█▄ ██ ▄█▀█▄     ██  ██ ▄▀▀█▄ ██ ██ ██ ██ ▄█▀ ██ ██ 
-   ██   ▀██ ▄█▀██ ██ ██▄█▀     ██▄ ██ ▄█▀██ ██ ██ ██ ████   ██ ██ 
- ▀██▀    ██▄▀█▄██▄██▄▀█▄▄▄      ▀███▀▄▀█▄██▄██▄██▄██▄██ ▀█▄▄██▄██*/
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -292,8 +285,14 @@ public class NetworkListener extends Thread {
      * Starts the listener loop on a different thread.
      * Use <name>.start(), do not use this method.
      * 
+     * After using {@code <name>.shutdown()}, you cannot restart the network
+     * listener.
+     * 
      * @throws SocketException
      * @throws IOException
+     * @throws IllegalThreadStateException if you attempt to call <name>.start()
+     *                                     after the NetworkListener was shut down
+     *                                     or is already listening.
      * @since v1.0.0
      */
     @Override
@@ -336,10 +335,11 @@ public class NetworkListener extends Thread {
 
     /**
      * Shuts down the listening loop.
+     * <p>
+     * After calling {@code <name>.shutdown()}, you cannot restart the network
+     * listener.
      * 
      * @since v1.0.0
-     *        <p>
-     *        v1.1.0 Fixed some shutdown safety issues.
      */
     public boolean shutdown() {
         active = false;
@@ -348,6 +348,36 @@ public class NetworkListener extends Thread {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Restarts the network listener if it was ever shut down.
+     * <p>
+     * Generally not best practice, only use if absolutely necessary.
+     * 
+     * @see {@code <name>.shutdown()} After calling this method, you cannot
+     *      run {@code <name>.start()} or else it will throw an
+     *      IllegalThreadStateException. You must call this method to restart the
+     *      NetworkListener.
+     * @throws InterruptedException
+     * @since 1.2.2
+     */
+    public void restart() {
+        if (active) {
+            return;
+        }
+        active = true;
+        if (ds != null && !ds.isClosed()) {
+            ds.close();
+        }
+        ds = null;
+        try {// Thread has to sleep for 100ms to allow time for the OS to release the port.
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        Thread t = new Thread(this, "NetworkListener-" + port);
+        t.start();
     }
 
     public void setReuseAddress(boolean b) {
@@ -373,5 +403,97 @@ public class NetworkListener extends Thread {
             throw new IllegalArgumentException("Unable to resolve host: " + ip, e);
         }
     }
+
+    /**
+     * Accessor method for the listening port.
+     * 
+     * @return port.
+     * @since v1.2.2
+     */
+    public int getPort() {
+        return port;
+    }
+
+    /**
+     * Accessor method for the packet buffer size.
+     * 
+     * @return packet size.
+     * @since v1.2.2
+     */
+    public int getPacketBufferSize() {
+        return packet_size;
+    }
+
+    /**
+     * Accessor method for active boolean.
+     * 
+     * @return {@code true} if listening, {@code false} if closed.
+     * @since v1.2.2
+     */
+    public boolean isActive() {
+        return active;
+    }
+
+    /**
+     * Accessor method for the socket used by the NetworkListener.
+     * 
+     * @return socket.
+     * @since v1.2.2
+     */
+    public DatagramSocket getSocket() {
+        return ds;
+    }
+
+    /**
+     * Accessor method for the dataReceiver object used to transfer data between
+     * the client and NetworkListener.
+     * 
+     * @return receiver/
+     * @since v1.2.2
+     */
+    public DataReceiver getDataReceiver() {
+        return receiver;
+    }
+
+    /**
+     * Accessore method for the SO_REUSEADDR boolean.
+     * 
+     * @return {@code true} if socket reuse address is enable, {@code false} if
+     *         otherwise.
+     * @since v1.2.2
+     */
+    public boolean socketReuseAddress() {
+        return SO_REUSEADDR;
+    }
+
+    /**
+     * @return A string containing details about the network listener on the format:
+     *         {@code [CLOSED/LISTENING] on port [port]. [DISABLED/WHITELISTING/BLACKLISTING] [# of restricted addresses] addresses.}
+     * @since v1.2.2;
+     */
+    public String toString() {
+        String t = "[";
+        if (!active) {
+            t += "CLOSED";
+        } else {
+            t += "LISTENING";
+        }
+        t += ("] on port [" + port + "]. ");
+        if (restr_type == -1) {
+            t += "No restrictions.";
+        } else if (restr_type == 0) {
+            t += "[BLACKLISTING] " + restrictedAddressesSize() + " addresses.";
+        } else if (restr_type == 1) {
+            t += "[WHITELISTING] " + restrictedAddressesSize() + " addresses.";
+        }
+        return t;
+    }
+
 }
-// © 2026 Nathan Vailikit. All rights reserved.
+
+/**
+ * author Nate Vailikit
+ * created on 5-22-2026
+ * github: https://github.com/nate-v
+ * copyright 2026
+ **/

@@ -14,9 +14,8 @@ public class TestServer {
         });
         nl.start();
         // RESTRICTION TESTING
-        /*
         nl.addRestricted("172.20.10.4");
-        nl.setRestriction(-1);
+        nl.setRestriction(0);
         try {
             nl.addRestricted(InetAddress.getByName("192.40.20.1"));
             System.out.println(nl.isRestricted(InetAddress.getByName("192.40.20.1")));
@@ -26,10 +25,21 @@ public class TestServer {
         }
         System.out.println(nl.isRestricted("172.20.10.4"));
         System.out.println(nl.isRestricted("176.20.30.4"));
-        */
+        System.out.println(nl);
+        nl.start();
+        System.out.println(nl);
+        nl.start();
+        System.out.println(nl);
     }
 
     public static void stop() {
         nl.shutdown();
     }
 }
+
+/**
+ * author Nate Vailikit
+ * created on 5-22-2026
+ * github: https://github.com/nate-v
+ * copyright 2026
+ **/

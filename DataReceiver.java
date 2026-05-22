@@ -1,10 +1,3 @@
-/* ▄▄     ▄▄▄                 ▄▄▄             ▄▄                  
-   ██▄   ██▀      █▄         █▀██  ██▀▀        ██              █▄ 
-   ███▄  ██      ▄██▄          ██  ██       ▀▀ ██ ▀▀ ▄▄     ▀▀▄██▄
-   ██ ▀█▄██ ▄▀▀█▄ ██ ▄█▀█▄     ██  ██ ▄▀▀█▄ ██ ██ ██ ██ ▄█▀ ██ ██ 
-   ██   ▀██ ▄█▀██ ██ ██▄█▀     ██▄ ██ ▄█▀██ ██ ██ ██ ████   ██ ██ 
- ▀██▀    ██▄▀█▄██▄██▄▀█▄▄▄      ▀███▀▄▀█▄██▄██▄██▄██▄██ ▀█▄▄██▄██*/
-
 import java.net.InetAddress;
 
 /**
@@ -25,4 +18,9 @@ public interface DataReceiver {
     void onReceive(byte[] data, int offset, int length, InetAddress address, int port);
 }
 
-// © 2026 Nathan Vailikit. All rights reserved.
+/**
+ * author Nate Vailikit
+ * created on 5-22-2026
+ * github: https://github.com/nate-v
+ * copyright 2026
+ **/

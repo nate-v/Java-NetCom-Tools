@@ -1,17 +1,10 @@
-/* ▄▄     ▄▄▄                 ▄▄▄             ▄▄                  
-   ██▄   ██▀      █▄         █▀██  ██▀▀        ██              █▄ 
-   ███▄  ██      ▄██▄          ██  ██       ▀▀ ██ ▀▀ ▄▄     ▀▀▄██▄
-   ██ ▀█▄██ ▄▀▀█▄ ██ ▄█▀█▄     ██  ██ ▄▀▀█▄ ██ ██ ██ ██ ▄█▀ ██ ██ 
-   ██   ▀██ ▄█▀██ ██ ██▄█▀     ██▄ ██ ▄█▀██ ██ ██ ██ ████   ██ ██ 
- ▀██▀    ██▄▀█▄██▄██▄▀█▄▄▄      ▀███▀▄▀█▄██▄██▄██▄██▄██ ▀█▄▄██▄██*/
-
 import java.io.IOException;
 import java.net.*;
 
 public class NetworkBroadcaster {
     private DatagramPacket packet;
     private final int port;
-    private final InetAddress serverAddress;
+    private final InetAddress address;
     private final DatagramSocket socket;
 
     /**
@@ -40,28 +33,49 @@ public class NetworkBroadcaster {
     /**
      * Constructor for the NetworkBroadcaster class
      * 
-     * @param serverAddress   The ip address to send data packets to (in the form of an
-     *             InetAddress object).
-     * @param port The port to send data packets to.
+     * @param address The ip address to send data packets to (in the form of
+     *                      an
+     *                      InetAddress object).
+     * @param port          The port to send data packets to.
      * @since v1.0.0
      */
-    public NetworkBroadcaster(InetAddress serverAddress, int port) {
-        this(serverAddress, port, createSocket());
+    public NetworkBroadcaster(InetAddress address, int port) {
+        this(address, port, createSocket());
     }
 
     /**
      * Constructor for the NetworkBroadcaster class
      * 
-     * @param serverAddress     The ip address to send data packets to (in the form of an
-     *               InetAddress object).
-     * @param port   The port to send data packets to.
-     * @param socket Shared socket to help sending and receiving.
+     * @param address The ip address to send data packets to (in the form of
+     *                      an
+     *                      InetAddress object).
+     * @param port          The port to send data packets to.
+     * @param socket        Shared socket to help sending and receiving.
      * @since v1.0.0
      */
-    public NetworkBroadcaster(InetAddress serverAddress, int port, DatagramSocket socket) {
-        validateArguments(serverAddress, port, socket);
-        this.serverAddress = serverAddress;
+    public NetworkBroadcaster(InetAddress address, int port, DatagramSocket socket) {
+        validateArguments(address, port, socket);
+        this.address = address;
         this.port = port;
+        this.socket = socket;
+    }
+
+    /**
+     * Constructor for the NetworkBroadcaster class
+     * 
+     * This method of creating the broadcaster is significantly simpler, but
+     * requires some more more work on client end.
+     * 
+     * @param socket Socket containing network data.
+     * @since v1.2.2
+     */
+    public NetworkBroadcaster(DatagramSocket socket) {
+        InetAddress tempAdd = socket.getInetAddress();
+        int tempPort = socket.getPort();
+
+        validateArguments(tempAdd, tempPort, socket);
+        this.address = tempAdd;
+        this.port = tempPort;
         this.socket = socket;
     }
 
@@ -78,7 +92,7 @@ public class NetworkBroadcaster {
             throw new IllegalArgumentException("data must not be null");
         }
         try {
-            packet = new DatagramPacket(data, data.length, serverAddress, port);
+            packet = new DatagramPacket(data, data.length, address, port);
             socket.send(packet);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to send UDP packet", e);
@@ -135,17 +149,17 @@ public class NetworkBroadcaster {
      * Centralizes error handling and argument validation for constructors.
      * Not meant for use outside of this class.
      * 
-     * @param serverAddress
+     * @param address
      * @param port
      * @param socket
-     * @throws IllegalArgumentException if the serverAddress is null/invalid, or if
+     * @throws IllegalArgumentException if the address is null/invalid, or if
      *                                  the socket is null, or if the port is out of
      *                                  range.
      * @since v1.0.0
      */
-    private static void validateArguments(InetAddress serverAddress, int port, DatagramSocket socket) {
-        if (serverAddress == null) {
-            throw new IllegalArgumentException("serverAddress must not be null");
+    private static void validateArguments(InetAddress address, int port, DatagramSocket socket) {
+        if (address == null) {
+            throw new IllegalArgumentException("address must not be null");
         }
         if (socket == null) {
             throw new IllegalArgumentException("socket must not be null");
@@ -154,6 +168,59 @@ public class NetworkBroadcaster {
             throw new IllegalArgumentException("Port must be between 1 and 65535");
         }
     }
+
+    /**
+     * Accessor method for address variable.
+     * 
+     * @return address.
+     * @since v1.2.2
+     */
+    public InetAddress getAddress() {
+        return address;
+    }
+
+    /**
+     * Accessor method for the destination address.
+     * 
+     * @return address in the string form.
+     * @since v1.2.2
+     */
+    public String getAddressString()    {
+        return address.toString();
+    }
+
+    /**
+     * Accessor method for the destination port.
+     * 
+     * @return port.
+     * @since v1.2.2
+     */
+    public int getPort()    {
+        return port;
+    }
+
+    /**
+     * Accessor method for the socket used by the NetworkBroadcaster.
+     * 
+     * @return socket.
+     * @since v1.2.2
+     */
+    public DatagramSocket getSocket()  {
+        return socket;
+    }
+
+    /**
+     * @return the intended destination of the broadcast in the string form: {@code [ip]:[port]}
+     * @since v1.2.2
+     */
+    public String toString()    {
+        return address.toString() + ":" + port;
+    }
 }
 
-// © 2026 Nathan Vailikit. All rights reserved.
+/**
+ * author Nate Vailikit
+ * created on 5-22-2026
+ * github: https://github.com/nate-v
+ * copyright 2026
+ **/

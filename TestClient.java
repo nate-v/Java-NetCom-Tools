@@ -81,3 +81,10 @@ public class TestClient {
         TestServer.stop();
     }
 }
+
+/**
+ * author Nate Vailikit
+ * created on 5-22-2026
+ * github: https://github.com/nate-v
+ * copyright 2026
+ **/

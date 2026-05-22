@@ -21,6 +21,24 @@
    ```
 > *This method broadcasts the input data to the specified IP and port in the form of a UDP packet. Data must be in the form of a byte array.*
 
+### close (void)
+```
+   <name>.close();
+```
+> *Just closes the socket safely, good practice to use when shutting down your client.*
+
+### Other accessors:
+```
+   getAddress()
+   getAddressString()
+   getPort()
+   getSocket()
+```
+> *The toString method returns the following string:*
+```
+   [ip]:[port]
+```
+
 ## NETWORK LISTENER
 
 ### NetworkListener (constructor)
@@ -42,6 +60,12 @@
     <name>.shutdown()
 ```
 > *Shuts down the network listener.*
+
+### restart (void)
+```
+   <name>.restart()
+```
+> *Restarts the network listener after being shutdown. Generally not best practice, create a new NetworkListener instead. Use only when necessary.*
 
 ### setRestrictionSet (void)
 ```
@@ -117,6 +141,21 @@
 ```
 > *Returns the size of the set of restricted addresses.*
 
+### Other Accessors:
+```
+   getPort()
+   getPacketBufferSize()
+   isActive()
+   getSocket()
+   getDataReceiver()
+   socketReuseAddress()
+```
+
+> *The toString method returns the following string:*
+```
+[CLOSED/LISTENING] on port [port]. [DISABLED/WHITELISTING/BLACKLISTING] [# of restricted addresses] addresses.
+```
+
 # DATA RECEIVER
 
 ### onReceive (void)
@@ -141,5 +180,11 @@
      - Create a new inbound rule to allow specific
        ports through the firewall.
 ```
-
-© 2026 Nathan Vailikit. All rights reserved.
+```
+/**
+ * author Nate Vailikit
+ * created on 5-22-2026
+ * github: https://github.com/nate-v
+ * copyright 2026
+ **/
+ ```
