@@ -14,7 +14,7 @@ public class TestServer {
         });
         nl.start();
         // RESTRICTION TESTING
-        nl.addRestricted("172.20.10.4");
+        nl.addRestricted("178.10.52.67");
         nl.setRestriction(0);
         try {
             nl.addRestricted(InetAddress.getByName("192.40.20.1"));
@@ -23,12 +23,11 @@ public class TestServer {
         } catch (Exception e) {
             // do nothing
         }
-        System.out.println(nl.isRestricted("172.20.10.4"));
-        System.out.println(nl.isRestricted("176.20.30.4"));
         System.out.println(nl);
-        nl.start();
+        nl.setReuseAddress(false);
+        nl.shutdown();
         System.out.println(nl);
-        nl.start();
+        nl.restart();
         System.out.println(nl);
     }
 

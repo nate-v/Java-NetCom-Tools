@@ -7,7 +7,7 @@ import java.net.InetAddress;
 import java.util.Set;
 import java.util.HashSet;
 
-public class NetworkListener extends Thread {
+public class NetworkListener implements Runnable {
     private final int port;
     private final int packet_size;
     private volatile boolean active = true;
@@ -15,6 +15,7 @@ public class NetworkListener extends Thread {
     private final DataReceiver receiver;
     private DatagramPacket dp;
     private boolean SO_REUSEADDR = false;
+    private Thread thread;
 
     private Set<InetAddress> address_list = new HashSet<>();
     private int restr_type = -1;// -1: disable --- 0: blacklist --- 1: whitelist
@@ -282,11 +283,23 @@ public class NetworkListener extends Thread {
     }
 
     /**
+     * Start method for NetworkListener.
+     * 
+     * @since v1.2.3
+     */
+    public void start() {
+        if (thread != null && thread.isAlive()) {
+            return;
+        }
+
+        active = true;
+        thread = new Thread(this, "NetworkListener-" + port);
+        thread.start();
+    }
+
+    /**
      * Starts the listener loop on a different thread.
      * Use <name>.start(), do not use this method.
-     * 
-     * After using {@code <name>.shutdown()}, you cannot restart the network
-     * listener.
      * 
      * @throws SocketException
      * @throws IOException
@@ -345,41 +358,37 @@ public class NetworkListener extends Thread {
         active = false;
         if (ds != null) {
             ds.close();
-            return true;
         }
-        return false;
+        try {
+            if (thread != null) {
+                thread.join();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        ds = null;
+        return true;
     }
 
     /**
      * Restarts the network listener if it was ever shut down.
      * <p>
-     * Generally not best practice, only use if absolutely necessary.
+     * Fine to use if SO_REUSEADDR (socket address reuse) is enabled.
      * 
-     * @see {@code <name>.shutdown()} After calling this method, you cannot
-     *      run {@code <name>.start()} or else it will throw an
-     *      IllegalThreadStateException. You must call this method to restart the
-     *      NetworkListener.
-     * @throws InterruptedException
-     * @since 1.2.2
+     * @since 1.2.3
      */
     public void restart() {
-        if (active) {
-            return;
-        }
-        active = true;
-        if (ds != null && !ds.isClosed()) {
-            ds.close();
-        }
-        ds = null;
-        try {// Thread has to sleep for 100ms to allow time for the OS to release the port.
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        Thread t = new Thread(this, "NetworkListener-" + port);
-        t.start();
+        this.shutdown();
+        this.start();
     }
 
+    /**
+     * Enables or disables the socket's ability to reuse addresses that are already
+     * in use or in TIME_WAIT.
+     * 
+     * @param b
+     * @since v1.2.1
+     */
     public void setReuseAddress(boolean b) {
         SO_REUSEADDR = b;
     }
@@ -473,7 +482,7 @@ public class NetworkListener extends Thread {
      */
     public String toString() {
         String t = "[";
-        if (!active) {
+        if (!(thread != null && thread.isAlive())) {
             t += "CLOSED";
         } else {
             t += "LISTENING";
