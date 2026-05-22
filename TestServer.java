@@ -29,6 +29,7 @@ public class TestServer {
         System.out.println(nl);
         nl.restart();
         System.out.println(nl);
+        nl.start();
     }
 
     public static void stop() {

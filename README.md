@@ -65,14 +65,13 @@
 ```
    <name>.restart()
 ```
-> *Restarts the network listener after being shutdown. Bad practice if address reuse is disabled, okay to use if address reuse is enabled.*
-> *If SO_REUSEADDR is disabled, this method will cause the thread to sleep for 100ms to allow the OS time to free up the port again for a new socket.*
+> *Restarts the network listener after being shutdown. Safe to use after update v1.2.4.*
 
 ### setReuseAddress (void)
 ```
    <name>.setReuseAddress(boolean b)
 ```
-> *Changes the value of SO_REUSEADDR. When true, the socket is allowed to bind to ports that may already be in use or in TIME_WAIT. You should enable this if you want to use the restart method.*
+> *Changes the value of SO_REUSEADDR. When true, the socket is allowed to bind to ports that may already be in use or in TIME_WAIT. Not entirely necessary, but good practice to use if you will be restarting the NetworkListener a lot.*
 
 ### setRestrictionSet (void)
 ```

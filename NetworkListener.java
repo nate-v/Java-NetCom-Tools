@@ -283,7 +283,7 @@ public class NetworkListener implements Runnable {
     }
 
     /**
-     * Start method for NetworkListener.
+     * Start method for NetworkListener. Starts the listening loop on a seperate thread.
      * 
      * @since v1.2.3
      */
@@ -298,14 +298,11 @@ public class NetworkListener implements Runnable {
     }
 
     /**
-     * Starts the listener loop on a different thread.
+     * Implements the listener loop on a different thread.
      * Use <name>.start(), do not use this method.
      * 
      * @throws SocketException
      * @throws IOException
-     * @throws IllegalThreadStateException if you attempt to call <name>.start()
-     *                                     after the NetworkListener was shut down
-     *                                     or is already listening.
      * @since v1.0.0
      */
     @Override
@@ -347,10 +344,7 @@ public class NetworkListener implements Runnable {
     }
 
     /**
-     * Shuts down the listening loop.
-     * <p>
-     * After calling {@code <name>.shutdown()}, you cannot restart the network
-     * listener.
+     * Safely shuts down the listening loop.
      * 
      * @since v1.0.0
      */
@@ -371,11 +365,11 @@ public class NetworkListener implements Runnable {
     }
 
     /**
-     * Restarts the network listener if it was ever shut down.
+     * Safely restarts the network listener if it was ever shut down.
      * <p>
-     * Fine to use if SO_REUSEADDR (socket address reuse) is enabled.
+     * Safe to use after update v1.2.4
      * 
-     * @since 1.2.3
+     * @since v1.2.3
      */
     public void restart() {
         this.shutdown();
