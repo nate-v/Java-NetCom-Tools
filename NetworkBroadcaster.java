@@ -70,6 +70,9 @@ public class NetworkBroadcaster {
      * @since v1.2.2
      */
     public NetworkBroadcaster(DatagramSocket socket) {
+        if(!socket.isConnected()) {
+            throw new IllegalArgumentException("Socket must be connected to a destination address and port.");
+        }
         InetAddress tempAdd = socket.getInetAddress();
         int tempPort = socket.getPort();
 
@@ -186,7 +189,7 @@ public class NetworkBroadcaster {
      * @since v1.2.2
      */
     public String getAddressString()    {
-        return address.toString();
+        return address.getHostAddress().toString();
     }
 
     /**

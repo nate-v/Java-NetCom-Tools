@@ -87,7 +87,7 @@
 
 ### SetRestrictionStringSet 
 ```
-   <name.setRestricitonSet(Set<String> set)>
+   <name.setRestrictionSet(Set<String> set)>
 ```
 > *Identical to setRestrictionSet but accepts a set of Strings as a parameter*
 

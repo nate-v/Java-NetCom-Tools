@@ -30,11 +30,11 @@ public class TestClient {
         System.out.println("0) Send packet\n1) Packet statistics\n2) Exit");
         do {
             opt = input.nextInt();
-            if (opt == 0) {
+            if (opt == 0) { // send single packet
                 try {
                     byte[] buffer = new byte[1024];
                     DatagramPacket dp = new DatagramPacket(buffer, buffer.length);
-                    ds.setSoTimeout(500);
+                    ds.setSoTimeout(500); // default timeout: 500ms
 
                     long sendTime = System.nanoTime();
                     nb.broadcast("hi".getBytes());
@@ -50,7 +50,7 @@ public class TestClient {
                 } catch (Exception e) {
                     System.out.println("Did not recieve a response packet.\n" + e);
                 }
-            } else if (opt == 1) {
+            } else if (opt == 1) { // send n packets and calculate test data
                 double sttMs = 0;
                 System.out.println("How many packets to send?");
                 int n = input.nextInt();
@@ -59,7 +59,7 @@ public class TestClient {
                         long sendTime = System.nanoTime();
                         byte[] buffer = new byte[1024];
                         DatagramPacket dp = new DatagramPacket(buffer, buffer.length);
-                        ds.setSoTimeout(500);
+                        ds.setSoTimeout(500); // default timeout: 500ms
                         nb.broadcast("hi".getBytes());
                         ds.receive(dp);
 
@@ -76,7 +76,7 @@ public class TestClient {
                 String o = (String.format("%.3f ms", (sttMs / nd)));
                 System.out.println("\n[ Complete ]\n Avg response time: " + o + "\n");
             }
-        } while (opt != 2);
+        } while (opt != 2); //end
         input.close();
         TestServer.stop();
     }

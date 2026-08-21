@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.InetSocketAddress;
 import java.net.InetAddress;
 import java.util.Set;
@@ -10,7 +11,8 @@ import java.util.HashSet;
 public class NetworkListener implements Runnable {
     private final int port;
     private final int packet_size;
-    private volatile boolean active = true;
+    private volatile boolean active = false;
+    private final boolean socketProvided;
     private DatagramSocket ds;
     private final DataReceiver receiver;
     private DatagramPacket dp;
@@ -45,10 +47,11 @@ public class NetworkListener implements Runnable {
         this.port = port;
         this.packet_size = packet_size;
         this.receiver = receiver;
+        this.socketProvided = false;
     }
 
     /**
-     * Constructor for the NetworkListener class.
+     * Constructor for the NetworkListener class. Requires a DatagramSocket to be provided, this socket must be bound to a port and connected to a destination address and port. This constructor is less flexible than its counterpart, and does not allow mutation of SO_REUSEADDR post-construction.
      * 
      * @param socket      DatagramSocket to listen through.
      * @param packet_size Maximum packet size the listener can recieve.
@@ -69,10 +72,14 @@ public class NetworkListener implements Runnable {
         if (receiver == null) {
             throw new IllegalArgumentException("receiver must not be null");
         }
+        if(!socket.isBound()) {
+            throw new IllegalArgumentException("Socket must be bound to a port.");
+        }
         this.ds = socket;
         this.port = socket.getLocalPort();
         this.packet_size = packet_size;
         this.receiver = receiver;
+        this.socketProvided = true;
     }
     // blacklist stuff
 
@@ -226,7 +233,7 @@ public class NetworkListener implements Runnable {
      * @since v1.2.1
      */
     public Set<InetAddress> getRestrictionSet() {
-        return address_list;
+        return Set.copyOf(address_list);
     }
 
     /**
@@ -293,12 +300,38 @@ public class NetworkListener implements Runnable {
             return;
         }
 
+        DatagramSocket ts = ds;
+
         try {
-            ds = new DatagramSocket(null);
-            ds.setReuseAddress(SO_REUSEADDR);
-            ds.bind(new InetSocketAddress(port));
-        } catch (Exception e) {
-            e.printStackTrace();
+            if(socketProvided) {
+                if(ts == null || ts.isClosed()) {
+                    throw new IllegalStateException("Provided socket is closed or null, cannot start listener.");
+                }
+            } else {
+                ts = new DatagramSocket(null);
+                ts.setReuseAddress(SO_REUSEADDR);
+                ts.bind(new InetSocketAddress(port));
+            }
+        } catch (SocketException e) {
+            if(ts != null && !socketProvided) {
+                ts.close();
+            }
+            ds = null;
+            active = false;
+            throw new IllegalStateException("Unable to bind socket to port " + port + ".\n" + e);
+        }
+
+        ds = ts; // assign socket to temporary socket after bind is succesful, avoids leaving socket open if bind fails.
+        try {
+            if(!socketProvided) {
+                ds.setSoTimeout(250);
+            }
+        } catch (SocketException e) {
+            if(!socketProvided) {
+                ds.close();
+                ds = null;
+            }
+            throw new IllegalStateException("Unable to set SO_TIMEOUT on socket.\n" + e);
         }
 
         active = true;
@@ -321,7 +354,12 @@ public class NetworkListener implements Runnable {
                 return;
             dp = new DatagramPacket(new byte[packet_size], packet_size);
             while (active) {
-                ds.receive(dp);
+                dp.setLength(packet_size); // length check to avoid packet size issues after filtered packets call continue.
+                try {
+                    ds.receive(dp);
+                } catch (SocketTimeoutException e) {
+                    continue;
+                }
                 if (restr_type == 0) {
                     if (address_list.contains(dp.getAddress())) {
                         continue;
@@ -332,7 +370,6 @@ public class NetworkListener implements Runnable {
                     }
                 }
                 receiver.onReceive(dp.getData(), dp.getOffset(), dp.getLength(), dp.getAddress(), dp.getPort());
-                dp.setLength(packet_size);
             }
         } catch (SocketException e) {
             if (active) {
@@ -341,7 +378,7 @@ public class NetworkListener implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if (ds != null && !ds.isClosed()) {
+            if (ds != null && !ds.isClosed() && !socketProvided) {
                 ds.close();
             }
         }
@@ -354,9 +391,10 @@ public class NetworkListener implements Runnable {
      */
     public boolean shutdown() {
         active = false;
-        if (ds != null) {
+        if (ds != null && !socketProvided) {
             ds.close();
         }
+        
         try {
             if (thread != null) {
                 thread.join();
@@ -364,7 +402,10 @@ public class NetworkListener implements Runnable {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        ds = null;
+        if(!socketProvided) {
+            ds = null;
+        }
+
         return true;
     }
 
@@ -390,14 +431,17 @@ public class NetworkListener implements Runnable {
      * @since v1.2.4b
      */
     public void setReuseAddressRuntime(boolean b) {
+        if(!active) {
+            throw new IllegalStateException("Cannot modify SO_REUSEADDR when listener is not active, use setReuseAddress(boolean b) instead.");
+        }
         if (ds == null) {
             throw new NullPointerException("Cannot modify SO_REUSEADDR when socket is inactive, null.");
         }
         try {
-            ds.setReuseAddress(SO_REUSEADDR);
+            ds.setReuseAddress(b);
             SO_REUSEADDR = b;
         } catch (SocketException e) {
-            e.printStackTrace();
+            throw new IllegalStateException("Unable to set SO_REUSEADDR on socket.\n" + e);
         }
     }
 
@@ -412,9 +456,11 @@ public class NetworkListener implements Runnable {
      * @since v1.2.1
      */
     public void setReuseAddress(boolean b) {
-        if (ds == null) {// SO_REUSEADDR is a flag, so it should only be changed if the real state of the
+        if (!active) {// SO_REUSEADDR is a flag, so it should only be changed if the real state of the
                          // socket is changed!
             SO_REUSEADDR = b;
+        }   else    {
+            throw new IllegalStateException("Cannot modify SO_REUSEADDR when socket is active, use setReuseAddressRuntime(boolean b) instead.");
         }
     }
 
@@ -501,7 +547,7 @@ public class NetworkListener implements Runnable {
             try {
                 return ds.getReuseAddress();
             } catch (SocketException e) {
-                e.printStackTrace();
+                throw new IllegalStateException("Unable to get SO_REUSEADDR state from socket.\n" + e);
             }
         }
         return false;
