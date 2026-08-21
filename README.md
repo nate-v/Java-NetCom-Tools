@@ -36,7 +36,7 @@
 ```
 > *The toString method returns the following string:*
 ```
-   [ip]:[port]
+   Casting to: [ip]:[port]
 ```
 
 ## NETWORK LISTENER

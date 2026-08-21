@@ -2,6 +2,8 @@ import java.util.Scanner;
 import java.net.InetAddress;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class TestClient {
     private static NetworkBroadcaster nb;
@@ -27,7 +29,7 @@ public class TestClient {
         Scanner input = new Scanner(System.in);
         int opt;
 
-        System.out.println("0) Send packet\n1) Packet statistics\n2) Exit");
+        System.out.println("0) Send packet\n1) Packet statistics\n2) Run functionality checks\n3) Run lifecycle checks\n4) Exit");
         do {
             opt = input.nextInt();
             if (opt == 0) { // send single packet
@@ -75,10 +77,52 @@ public class TestClient {
                 double nd = (double)n;
                 String o = (String.format("%.3f ms", (sttMs / nd)));
                 System.out.println("\n[ Complete ]\n Avg response time: " + o + "\n");
+            } else if (opt == 2) {
+                runFunctionalityChecks();
+            } else if (opt == 3) {
+                TestServer.runLifecycleChecks();
             }
-        } while (opt != 2); //end
+        } while (opt != 4); //end
         input.close();
         TestServer.stop();
+        if (nb != null) {
+            nb.close();
+        } else if (ds != null && !ds.isClosed()) {
+            ds.close();
+        }
+    }
+
+    private static void runFunctionalityChecks() {
+        try {
+            nb.broadcast("address probe".getBytes(StandardCharsets.UTF_8));
+            ds.setSoTimeout(500);
+            ds.receive(new DatagramPacket(new byte[1024], 1024));
+            InetAddress clientAddress = TestServer.getLastClientAddress();
+
+            byte[] filteredData = "filtered".getBytes(StandardCharsets.UTF_8);
+            TestServer.blockAddress(clientAddress);
+            nb.broadcast(filteredData);
+            ds.setSoTimeout(100);
+            try {
+                ds.receive(new DatagramPacket(new byte[1024], 1024));
+                System.out.println("Filtering check: FAILED (filtered packet received)");
+            } catch (java.net.SocketTimeoutException expected) {
+                System.out.println("Filtering check: passed");
+            } finally {
+                TestServer.unblockAddress(clientAddress);
+            }
+
+            byte[] largeData = new byte[1024];
+            Arrays.fill(largeData, (byte) 'x');
+            nb.broadcast(largeData);
+            ds.setSoTimeout(500);
+            DatagramPacket response = new DatagramPacket(new byte[1024], 1024);
+            ds.receive(response);
+            System.out.println("Packet length check: "
+                    + (response.getLength() == largeData.length ? "passed" : "FAILED"));
+        } catch (Exception e) {
+            System.out.println("Functionality checks failed: " + e);
+        }
     }
 }
 

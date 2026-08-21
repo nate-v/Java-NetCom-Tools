@@ -217,7 +217,7 @@ public class NetworkBroadcaster {
      * @since v1.2.2
      */
     public String toString()    {
-        return address.toString() + ":" + port;
+        return "Casting to: " + address.toString() + ":" + port;
     }
 }
 
