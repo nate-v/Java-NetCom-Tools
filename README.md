@@ -1,6 +1,8 @@
 # **JAVA NETCOM TOOLS**
 
-*Java NetCom Tools is a small bundle of classes that simplify the process of UDP networking across multiple machines in Java. It is an open-source program written entirely in Java.*
+*Java NetCom Tools is a small bundle of classes that simplify the process of UDP networking across multiple machines in Java. It is an open-source program written entirely in Java. This project was written alongside my high school senior CS final project, feel free to use this library for your own programs, and as a case study.*
+
+*Java NetCom Tools is created by an ameteur programmer who is still learning, so you may notice inefficiencies or bugs. Bug reports, issues, and suggestions are extremely helpful.*
 
 ## NETWORK BROADCASTER
 
@@ -75,7 +77,7 @@
 
 ### setReuseAddressRuntime (void)
 ```
-   <name>.setReuseAddress(boolean b)
+   <name>.setReuseAddressRuntime(boolean b)
 ```
 > *Changes the value of SO_REUSEADDR DURING RUNTIME. When true, the socket is allowed to bind to ports that may already be in use or in TIME_WAIT. Not entirely necessary, but good practice to use if you will be restarting the NetworkListener a lot.*
 
