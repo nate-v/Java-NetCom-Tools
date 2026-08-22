@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.net.*;
+import java.nio.charset.*;
 
 public class NetworkBroadcaster {
     private DatagramPacket packet;
@@ -100,6 +101,31 @@ public class NetworkBroadcaster {
         } catch (IOException e) {
             throw new IllegalStateException("Failed to send UDP packet", e);
         }
+    }
+
+    /**
+     * Broadcasts a data packet containing a string to the address and port specified in the constructor. Uses UTF_8. See broadcast(String str, Charset charset) to use a different charset.
+     * 
+     * @param str the string message to be sent.
+     * @throws IllegalArgumentException if the string str is null.
+     * @since v1.2.7
+     */
+    public void broadcast(String str)   {
+        broadcast(str, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Broadcasts a data packet containing a string to the address and port specified in the constructor. Uses the charset defined in your implementation.
+     * @param str the string message to be sent.
+     * @param charset the charset to encode str.
+     * @throws IllegalArgumentException if either str or charset is null.
+     * @since v1.2.7
+     */
+    public void broadcast(String str, Charset charset)   {
+        if(str == null || charset == null)  {
+            throw new IllegalArgumentException();
+        }
+        broadcast(str.getBytes(charset));
     }
 
     /**
