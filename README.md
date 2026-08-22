@@ -19,9 +19,11 @@
 
 ### broadcast (void)
    ```
-    <name>.broadcast(byte[] <data>)
+    <name>.broadcast(byte[] data)
+ or <name>.broadcast(String str)
+ or <name>.broadcast(String str, Charset charset)
    ```
-> *This method broadcasts the input data to the specified IP and port in the form of a UDP packet. Data must be in the form of a byte array.*
+> *This method broadcasts the input data to the specified IP and port in the form of a UDP packet. Data can be in the form of a byte array, or a String. The String method uses UTF_8 encoding by default, you can optionally change this using the third implementation.*
 
 ### close (void)
 ```
@@ -179,13 +181,30 @@
    Example:
     NetworkListener nl = new NetworkListener(serverport, 1024, new DataReceiver() {
             @Override
-            public void onReceive(byte[] data, int offset, int length, InetAddress address, int port) {
+            <onReceive>
+        });
+
+   <onReceive> = 
+      public void onReceive(byte[] data, int offset, int length, InetAddress address, int port) {
                 NetworkBroadcaster nb = new NetworkBroadcaster(address, port);
 
                 String message = "recieved: " + new String(data);
                 nb.broadcast(message.getBytes());
             }
-        });
+      or
+      public void onReceive(byte[] data, InetAddress address, int port) {
+                NetworkBroadcaster nb = new NetworkBroadcaster(address, port);
+
+                String message = "recieved: " + new String(data);
+                nb.broadcast(message.getBytes());
+            }
+      or
+      public void onReceive(byte[] data, int offset, InetAddress address, int port) {
+                NetworkBroadcaster nb = new NetworkBroadcaster(address, port);
+
+                String message = "recieved: " + new String(data);
+                nb.broadcast(message.getBytes());
+            }
 ```
 ## TROUBLESHOOTING
 
