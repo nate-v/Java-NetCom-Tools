@@ -35,9 +35,9 @@ public class NetworkBroadcaster {
      * Constructor for the NetworkBroadcaster class
      * 
      * @param address The ip address to send data packets to (in the form of
-     *                      an
-     *                      InetAddress object).
-     * @param port          The port to send data packets to.
+     *                an
+     *                InetAddress object).
+     * @param port    The port to send data packets to.
      * @since v1.0.0
      */
     public NetworkBroadcaster(InetAddress address, int port) {
@@ -48,10 +48,10 @@ public class NetworkBroadcaster {
      * Constructor for the NetworkBroadcaster class
      * 
      * @param address The ip address to send data packets to (in the form of
-     *                      an
-     *                      InetAddress object).
-     * @param port          The port to send data packets to.
-     * @param socket        Shared socket to help sending and receiving.
+     *                an
+     *                InetAddress object).
+     * @param port    The port to send data packets to.
+     * @param socket  Shared socket to help sending and receiving.
      * @since v1.0.0
      */
     public NetworkBroadcaster(InetAddress address, int port, DatagramSocket socket) {
@@ -71,7 +71,7 @@ public class NetworkBroadcaster {
      * @since v1.2.2
      */
     public NetworkBroadcaster(DatagramSocket socket) {
-        if(!socket.isConnected()) {
+        if (!socket.isConnected() || socket.isClosed()) {
             throw new IllegalArgumentException("Socket must be connected to a destination address and port.");
         }
         InetAddress tempAdd = socket.getInetAddress();
@@ -104,26 +104,31 @@ public class NetworkBroadcaster {
     }
 
     /**
-     * Broadcasts a data packet containing a string to the address and port specified in the constructor. Uses UTF_8. See broadcast(String str, Charset charset) to use a different charset.
+     * Broadcasts a data packet containing a string to the address and port
+     * specified in the constructor. Uses UTF_8. See broadcast(String str, Charset
+     * charset) to use a different charset.
      * 
      * @param str the string message to be sent.
      * @throws IllegalArgumentException if the string str is null.
      * @since v1.2.7
      */
-    public void broadcast(String str)   {
+    public void broadcast(String str) {
         broadcast(str, StandardCharsets.UTF_8);
     }
 
     /**
-     * Broadcasts a data packet containing a string to the address and port specified in the constructor. Uses the charset defined in your implementation.
-     * @param str the string message to be sent.
+     * Broadcasts a data packet containing a string to the address and port
+     * specified in the constructor. Uses the charset defined as a parameter to
+     * encode the string.
+     * 
+     * @param str     the string message to be sent.
      * @param charset the charset to encode str.
      * @throws IllegalArgumentException if either str or charset is null.
      * @since v1.2.7
      */
-    public void broadcast(String str, Charset charset)   {
-        if(str == null || charset == null)  {
-            throw new IllegalArgumentException();
+    public void broadcast(String str, Charset charset) {
+        if (str == null || charset == null) {
+            throw new IllegalArgumentException("String or Charset may not be null.");
         }
         broadcast(str.getBytes(charset));
     }
@@ -214,7 +219,7 @@ public class NetworkBroadcaster {
      * @return address in the string form.
      * @since v1.2.2
      */
-    public String getAddressString()    {
+    public String getAddressString() {
         return address.getHostAddress().toString();
     }
 
@@ -224,7 +229,7 @@ public class NetworkBroadcaster {
      * @return port.
      * @since v1.2.2
      */
-    public int getPort()    {
+    public int getPort() {
         return port;
     }
 
@@ -234,15 +239,16 @@ public class NetworkBroadcaster {
      * @return socket.
      * @since v1.2.2
      */
-    public DatagramSocket getSocket()  {
+    public DatagramSocket getSocket() {
         return socket;
     }
 
     /**
-     * @return the intended destination of the broadcast in the string form: {@code [ip]:[port]}
+     * @return the intended destination of the broadcast in the string form:
+     *         {@code [ip]:[port]}
      * @since v1.2.2
      */
-    public String toString()    {
+    public String toString() {
         return "Casting to: " + address.toString() + ":" + port;
     }
 }
