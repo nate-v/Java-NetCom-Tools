@@ -173,6 +173,36 @@
 [CLOSED/LISTENING] on port [port]. [DISABLED/WHITELISTING/BLACKLISTING] [# of restricted addresses] addresses.
 ```
 
+# NETWORKALMULTICASTER
+*NetworkALMulticaster (Network Application-Layer Multicaster) is a network fan-out style multicaster that does not use group IP's. This class is NOT true multicasting, and it is less efficient than true multicasting. Support for true multicasting and group IP's is planned for a future release of Java NetCom Tools.*
+*Due to my own material limitations now that I'm at college, testing for NetworkALMultcaster has been minimal and may be unstable. USE AT YOUR OWN RISK!*
+
+### NetworkALMulticaster (constructor)
+```
+   NetworkALMulticaster <name> = new NetworkALMulticaster(<contents>);
+   <contents> = 
+      List<InetAddress> address, List<Integer> port, List<DatagramSocket> socket
+   or List<InetAddress> address, List<Integer> port
+   or List<DatagramSocket> socket
+```
+> *Any shared sockets provided by the client will be closed when calling close().*
+
+### ALMulticast (void)
+```
+   ALMulticast(<contents>);
+   <contents> =
+      byte[] data
+   or String str, Charset charset
+   or String str
+```
+> *Broadcasts the data to each destination address. Input in the form of a string with an optional custom encoding, or a byte array.*
+
+### close (void)
+```
+   close();
+```
+> *Closes each socket in the NetworkALMulticaster, this includes sockets owned by the caller!*
+
 # DATA RECEIVER
 
 ### onReceive (void)
